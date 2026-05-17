@@ -1,9 +1,14 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>رسائل من المستقبل</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700&display=swap" rel="stylesheet">
+
   <style>
     * {
       margin: 0;
@@ -12,13 +17,17 @@
     }
 
     body, html {
-      height: 100%;
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      background: black;
+      min-height: 100vh;
+      font-family: 'Cairo', sans-serif;
+      background: #030308;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
     }
 
-    /* فيديو الخلفية */
+    /* فيديو الخلفية للسماء المستمر طول الوقت (v1.mp4) */
     .background-video {
       position: fixed;
       top: 0;
@@ -26,137 +35,169 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      z-index: -2;
+      z-index: -10; /* جعل الفيديو في آخر طبقة بالخلفية */
+      opacity: 0.6;
     }
 
-    /* طبقة الصورة */
-    .stars {
+    /* تأثير النجوم والقلوب المتحركة برمجياً (تم رفع الـ z-index لتظهر فوق الفيديو) */
+    #bg-canvas {
       position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      background: url('img') repeat;
-      background-size: cover;
-      z-index: -1;
-      opacity: 0.2;
+      z-index: -5; 
+      pointer-events: none;
     }
 
-    /* المحتوى */
+    /* طبقة ظلال ناعمة */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(3,3,8,0.2) 0%, rgba(3,3,8,0.6) 100%);
+      z-index: -8;
+    }
+
+    /* صندوق المحتوى الزجاجي الأنيق */
     .container {
-      position: relative;
-      z-index: 1;
+      width: 90%;
       max-width: 600px;
-      margin: auto;
-      top: 50%;
-      transform: translateY(-50%);
-      padding: 20px;
+      margin: 40px auto;
+      padding: 40px 25px;
       text-align: center;
-      background-color: rgba(0, 0, 0, 0.6);
-      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      z-index: 1;
     }
 
+    /* مساحة الرسائل */
     .message {
-      font-size: 1.5rem;
-      margin-bottom: 20px;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 35px;
       min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.8;
+      color: #f1f1f1;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
       transition: opacity 0.3s ease;
-      color: #fff;
     }
 
+    /* الأزرار */
     button {
-      padding: 10px 20px;
-      background-color: #ff4081;
+      padding: 14px 28px;
+      background: linear-gradient(45deg, #ff4081, #ec407a);
       border: none;
-      border-radius: 10px;
+      border-radius: 50px;
       color: white;
       font-size: 1rem;
+      font-weight: bold;
+      font-family: 'Cairo', sans-serif;
       cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(236, 64, 122, 0.3);
       margin: 5px;
     }
 
     button:hover {
-      background-color: #e73370;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(236, 64, 122, 0.5);
     }
 
+    button.secondary {
+      background: linear-gradient(45deg, #7e57c2, #5c6bc0);
+      box-shadow: 0 4px 15px rgba(92, 107, 192, 0.3);
+    }
+
+    button.secondary:hover {
+      box-shadow: 0 8px 25px rgba(92, 107, 192, 0.5);
+    }
+
+    /* صندوق الهديّة */
     .gift-container {
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 25px;
       margin-top: 20px;
       z-index: 1;
     }
 
-    .gift-image {
-      max-width: 100%;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    video#gift-video {
+      width: 100%;
+      max-height: 350px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
 
     .gift-message {
-      font-size: 1.3rem;
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 12px;
-      line-height: 1.8;
-      color: white;
-    }
-
-    video#gift-video {
-      max-width: 100%;
-      border-radius: 12px;
+      font-size: 1.2rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 25px;
+      border-radius: 20px;
+      line-height: 2;
+      text-align: justify;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e0e0e0;
     }
   </style>
 </head>
 <body>
 
-  <!-- فيديو الخلفية -->
-  <video class="background-video" autoplay muted loop>
-    <source src="v.mp4" type="video/mp4">
+  <video id="bg-video-element" class="background-video" autoplay muted loop playsinline>
+    <source src="v1.mp4" type="video/mp4">
     المتصفح لا يدعم تشغيل الفيديو.
   </video>
 
-  <!-- صورة النجوم -->
-  <div class="stars"></div>
+  <canvas id="bg-canvas"></canvas>
 
-  <!-- المحتوى الرئيسي -->
+  <div class="overlay"></div>
+
   <div class="container" id="message-box">
     <div class="message" id="message">اضغط الزر عشان توصلك رسالة منّي في المستقبل...</div>
     <button onclick="nextMessage()">📩 رسائل من المستقبل</button>
-    <button onclick="showGift()">🎁 بعد تخلصي افتحي هديتك</button>
+    <button class="secondary" onclick="showGift()">🎁 بعد تخلصي افتحي هديتك</button>
   </div>
 
-  <!-- الهديّة -->
-  <div class="gift-container" id="gift-box">
-    <video id="gift-video" controls>
+  <div class="container gift-container" id="gift-box">
+    <video id="gift-video" controls playsinline>
       <source src="v.mp4" type="video/mp4">
       المتصفح لا يدعم تشغيل الفيديو.
     </video>
-    <img src="https://chat.openai.com/cdn-cgi/imagedelivery/0bLEk1BGsVmEo8sPYh6zvQ/7807efc3-2bda-47e4-78b2-20717c6ad600/public" class="gift-image" alt="هدية">
+    
     <div class="gift-message">
-      ما بعرف كيف الزمن قدر يفرق بينا، بس بعرف إنك لسه في قلبي... دايمًا كنتي أكتر من حبيبة. كنتي الحتة الأمان، الضحكة، والونس الحقيقي. <br>
-      في غيابك، اتعلمت إنو الونس ما فيهو ناس كتار، بس فيهو قلب واحد... قلبك. <br>
+      ما بعرف كيف الزمن قدر يفرق بينا، بس بعرف إنك لسه في قلبي... دايمًا كنتي أكتر من حبيبة. كنتي الحتة الأمان، الضحكة، والونس الحقيقي. <br><br>
+      في غيابك، اتعلمت إنو الونس ما فيهو ناس كتار، بس فيهو قلب واحد... قلبك. <br><br>
       يمكن ما أقدر أوصل ليك هسي، لكن قلبي بوصّل ليك في كل لحظة إنو أنا بحبك... ولسه معاك، حتى من بعيد.
     </div>
   </div>
 
-  <!-- موسيقى خلفية -->
   <audio id="bg-music" autoplay loop>
     <source src="https://dl.dropboxusercontent.com/scl/fi/k6pd50ykx2q60nzj93bqk/Karim_-_Kadaba.mp3?rlkey=1kr2bwkdtcz22v9z1u5q96l1m&st=6u1v86a4&dl=0" type="audio/mp3">
   </audio>
 
   <script>
-    const messages = [ "ربا زهير",
-    "جميله اغسطسص ",
-  "2006  8  4",
-    "احبك",
-  "كثيرررررررررررررر",
-    "كل عيد انتي معاي",
-     "  يشبهك قلبي اطلق من يشبهه",
-"من يوم عرفتك من سنتين وحنا ما نقطعنا من كلام سوااشياء كثيره م تنوصف",
-"حبيت اقولك كل عام وانتي بالف خير"
-
-,
-  "بعد سنة من اليوم، لقيت نفسي أكتب ليك ولسه بضحك على أول مرة قلتي فيها 'أحبك'...",
+    const messages = [ 
+      "ربا زهير",
+      "جميله اغسطسص ",
+      "2006  8  4",
+      "احبك",
+      "كثيرررررررررررررر",
+      "كل عيد انتي معاي",
+      "  يشبهك قلبي اطلق من يشبهه",
+      "من يوم عرفتك من سنتين وحنا ما نقطعنا من كلام سوااشياء كثيره م تنوصف",
+      "حبيت اقولك كل عام وانتي بالف خير",
+      "بعد سنة من اليوم، لقيت نفسي أكتب ليك ولسه بضحك على أول مرة قلتي فيها 'أحبك'...",
       "بعد 3 سنين: سافرت أماكن كتير... بس كل شارع غريب يذكرني بيك.",
       "بعد 5 سنين: شفتك في حلم، كنتي ماسكة يدي، بتقولي: لسه مستنيني؟ أنا هنا.",
       "بعد 7 سنين: ما تغير شي، لسه بدور عليك في كل عيون العالم.",
@@ -166,11 +207,8 @@
       "بعد 9 سنين: الزمن مرق، بس ما في يوم مرق ما تذكرتك فيه.",
       "بعد 4 سنين: مشينا باريس، زي ما حلمنا. نسيت الكاميرا، صورتك بعيني.",
       "بعد 8 سنين: الرسالة دي يمكن ما توصلك، بس أنا دايمًا برسلك، حتى من بعيد.",
-      "اليوم دا: عيد ميلادك... ودي آخر رسالة من المستقبل. فيها كل سنيني الجاية: أحبك، وأتمنى تكوني أسعد إنسانة في الكون." ,
+      "اليوم دا: عيد ميلادك... ودي آخر رسالة من المستقبل. فيها كل سنيني الجاية: أحبك، وأتمنى تكوني أسعد إنسانة في الكون." 
     ];
-
-
-
 
     let index = 0;
     const msgBox = document.getElementById("message");
@@ -196,10 +234,71 @@
       giftBox.style.display = 'flex';
 
       const video = document.getElementById("gift-video");
-      video.play().catch(() => {
-        alert("شغلي الفيديو يدويًا لو ما اشتغل تلقائي.");
-      });
+      if (video) {
+        video.play().catch(() => {
+          alert("شغلي الفيديو يدويًا لو ما اشتغل تلقائي.");
+        });
+      }
     }
+
+    /* تحريك جزيئات الخلفية (النجوم والقلوب) الساطعة */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const maxParticles = 70; // عدد متوازن لمنع البطء ولتظهر بوضوح
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+        this.y = Math.random() * canvas.height;
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + 20;
+        this.size = Math.random() * 3 + 1; // تكبير الحجم قليلاً لتتضح
+        this.speedY = Math.random() * 0.6 + 0.3;
+        this.opacity = Math.random() * 0.6 + 0.4; // زيادة الشفافية لتكون ساطعة
+        this.isHeart = Math.random() > 0.8; // زيادة نسبة ظهور القلوب
+      }
+      update() {
+        this.y -= this.speedY;
+        if (this.y < -20) this.reset();
+      }
+      draw() {
+        ctx.save();
+        if (this.isHeart) {
+          ctx.font = `${this.size * 6}px Arial`;
+          ctx.fillStyle = `rgba(255, 64, 129, ${this.opacity})`;
+          ctx.shadowBlur = 10; // تأثير توهج للقلب
+          ctx.shadowColor = '#ff4081';
+          ctx.fillText('❤️', this.x, this.y);
+        } else {
+          ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+          ctx.shadowBlur = 5;
+          ctx.shadowColor = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < maxParticles; i++) { particles.push(new Particle()); }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
   </script>
 
 </body>
